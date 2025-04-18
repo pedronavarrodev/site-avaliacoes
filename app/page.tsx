@@ -194,10 +194,16 @@ export default function Home() {
                             src={depoimento.foto}
                             alt={depoimento.nome}
                             fill
+                            sizes="(max-width: 64px) 100vw, 64px"
                             className="object-cover"
+                            onError={(e: any) => {
+                              e.target.style.display = 'none';
+                              const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center fallback-icon">
                             <FaUserCircle className="w-full h-full text-blue-300" />
                           </div>
                         )}
