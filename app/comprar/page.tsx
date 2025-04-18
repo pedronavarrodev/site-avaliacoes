@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { FaGoogle, FaStar, FaCheck } from 'react-icons/fa'
 
@@ -13,7 +13,7 @@ const PLANOS = {
   profissional: {
     nome: 'Profissional',
     quantidade: 15,
-    preco: 0.01
+    preco: 75.00
   },
   empresarial: {
     nome: 'Empresarial',
@@ -22,7 +22,7 @@ const PLANOS = {
   }
 }
 
-export default function ComprarPage() {
+function ComprarForm() {
   const searchParams = useSearchParams()
   const planoSelecionado = searchParams.get('plano')
 
@@ -162,5 +162,17 @@ export default function ComprarPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ComprarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ComprarForm />
+    </Suspense>
   )
 } 

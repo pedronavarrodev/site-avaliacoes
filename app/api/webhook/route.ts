@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Pedido from '@/models/Pedido'
-import mercadopago from 'mercadopago'
+import { MercadoPagoConfig, Payment } from 'mercadopago'
 
-mercadopago.configure({
-  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN as string,
-})
+const client = new MercadoPagoConfig({ 
+  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN as string 
+});
 
 export async function POST(request: Request) {
   try {
@@ -13,13 +13,14 @@ export async function POST(request: Request) {
     
     if (body.type === 'payment') {
       const paymentId = body.data.id
-      const payment = await mercadopago.payment.findById(paymentId)
+      const payment = new Payment(client);
+      const paymentData = await payment.get({ id: paymentId });
       
-      if (payment.body.status === 'approved') {
+      if (paymentData.status === 'approved') {
         await dbConnect()
         
         await Pedido.findOneAndUpdate(
-          { mercadoPagoId: payment.body.external_reference },
+          { mercadoPagoId: paymentData.external_reference },
           { status: 'pago' }
         )
         
