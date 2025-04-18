@@ -64,4 +64,37 @@ export async function PUT(request: Request) {
       { status: 500 }
     )
   }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID do pedido é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    await dbConnect()
+    
+    const pedido = await Pedido.findByIdAndDelete(id)
+    
+    if (!pedido) {
+      return NextResponse.json(
+        { error: 'Pedido não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Pedido excluído com sucesso' })
+  } catch (error) {
+    console.error('Erro ao excluir pedido:', error)
+    return NextResponse.json(
+      { error: 'Erro ao excluir pedido' },
+      { status: 500 }
+    )
+  }
 } 

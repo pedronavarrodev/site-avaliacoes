@@ -9,6 +9,7 @@ interface Pedido {
   _id: string
   nome: string
   email: string
+  whatsapp?: string
   linkGoogle: string
   quantidade: number
   status: string
@@ -198,6 +199,30 @@ export default function AdminPage() {
       alert('Erro ao atualizar status');
     } finally {
       setAtualizando(false);
+    }
+  };
+
+  const handleDeletePedido = async (pedidoId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/pedidos?id=${pedidoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${senha}`
+        }
+      });
+
+      if (res.ok) {
+        setPedidos(pedidos.filter(p => p._id !== pedidoId));
+      } else {
+        alert('Erro ao excluir pedido');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir pedido:', error);
+      alert('Erro ao excluir pedido');
     }
   };
 
@@ -440,6 +465,9 @@ export default function AdminPage() {
                   Cliente
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contato
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Link
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -451,6 +479,9 @@ export default function AdminPage() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Valor
                 </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -461,7 +492,16 @@ export default function AdminPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{pedido.nome}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{pedido.email}</div>
+                    {pedido.whatsapp && (
+                      <div className="text-sm text-gray-500">
+                        <a href={`https://wa.me/${pedido.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-800">
+                          {pedido.whatsapp}
+                        </a>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <a
@@ -485,6 +525,14 @@ export default function AdminPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     R$ {pedido.precoTotal.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleDeletePedido(pedido._id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))}

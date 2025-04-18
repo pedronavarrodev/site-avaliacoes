@@ -8,17 +8,17 @@ const PLANOS = {
   iniciante: {
     nome: 'Iniciante',
     quantidade: 5,
-    preco: 25.00
+    preco: 249.90
   },
   profissional: {
     nome: 'Profissional',
     quantidade: 15,
-    preco: 75.00
+    preco: 449.90
   },
   empresarial: {
     nome: 'Empresarial',
-    quantidade: 20,
-    preco: 100.00
+    quantidade: 50,
+    preco: 999.90
   }
 }
 
@@ -29,6 +29,7 @@ function ComprarForm() {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
+    whatsapp: '',
     linkGoogle: '',
     quantidade: planoSelecionado ? PLANOS[planoSelecionado as keyof typeof PLANOS].quantidade : 5
   })
@@ -117,6 +118,20 @@ function ComprarForm() {
               </div>
 
               <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="whatsapp">
+                  WhatsApp (opcional)
+                </label>
+                <input
+                  type="tel"
+                  id="whatsapp"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                  value={formData.whatsapp}
+                  onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="linkGoogle">
                   Link do seu Negócio no Google
                 </label>
@@ -141,9 +156,11 @@ function ComprarForm() {
                   value={formData.quantidade}
                   onChange={(e) => setFormData({...formData, quantidade: Number(e.target.value)})}
                 >
-                  <option value={5}>5 avaliações - R$ 25,00</option>
-                  <option value={15}>15 avaliações - R$ 75,00</option>
-                  <option value={20}>20 avaliações - R$ 100,00</option>
+                  <option value={5}>5 avaliações - R$ 249,90</option>
+                  <option value={10}>10 avaliações - R$ 329,90</option>
+                  <option value={15}>15 avaliações - R$ 449,90</option>
+                  <option value={20}>20 avaliações - R$ 519,90</option>
+                  <option value={50}>50 avaliações - R$ 999,90</option>
                 </select>
               </div>
 

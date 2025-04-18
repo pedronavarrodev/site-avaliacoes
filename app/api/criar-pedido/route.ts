@@ -13,9 +13,11 @@ const client = new MercadoPagoConfig({
 
 // Definição dos preços dos planos
 const PLANOS = {
-  5: 25.00,   // Plano Iniciante
-  15: 75.00,  // Plano Profissional
-  20: 100.00  // Plano Empresarial
+  5: 249.90,   // Plano Iniciante
+  10: 329.90,  // Plano Básico
+  15: 449.90,  // Plano Profissional
+  20: 519.90,  // Plano Avançado
+  50: 999.90   // Plano Empresarial
 };
 
 export const maxDuration = 60; // Aumenta o timeout para 60 segundos
@@ -31,10 +33,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log('Dados recebidos:', body);
     
-    const { nome, email, linkGoogle, quantidade } = body;
+    const { nome, email, whatsapp, linkGoogle, quantidade } = body;
     
-    // Pega o preço baseado na quantidade ou usa o preço padrão
-    const precoTotal = PLANOS[quantidade as keyof typeof PLANOS] || quantidade * 5;
+    // Pega o preço baseado na quantidade
+    const precoTotal = PLANOS[quantidade as keyof typeof PLANOS];
+    if (!precoTotal) {
+      throw new Error('Quantidade inválida');
+    }
+    
     console.log('Preço calculado:', precoTotal);
     
     const preference = new Preference(client);
@@ -80,6 +86,7 @@ export async function POST(request: Request) {
     const pedido = await Pedido.create({
       nome,
       email,
+      whatsapp,
       linkGoogle,
       quantidade,
       precoTotal,

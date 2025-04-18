@@ -9,6 +9,10 @@ const PedidoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  whatsapp: {
+    type: String,
+    required: false,
+  },
   linkGoogle: {
     type: String,
     required: true,
