@@ -1,182 +1,104 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { FaGoogle, FaStar, FaCheck } from 'react-icons/fa'
-
-const PLANOS = {
-  iniciante: {
-    nome: 'Iniciante',
-    quantidade: 5,
-    preco: 249.90
-  },
-  profissional: {
-    nome: 'Profissional',
-    quantidade: 15,
-    preco: 449.90
-  },
-  empresarial: {
-    nome: 'Empresarial',
-    quantidade: 50,
-    preco: 999.90
-  }
-}
+import { useState } from 'react'
+import { Suspense } from 'react'
 
 function ComprarForm() {
-  const searchParams = useSearchParams()
-  const planoSelecionado = searchParams.get('plano')
+  const [loading, setLoading] = useState(false)
 
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    whatsapp: '',
-    linkGoogle: '',
-    quantidade: planoSelecionado ? PLANOS[planoSelecionado as keyof typeof PLANOS].quantidade : 5
-  })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handlePurchase = async (plano: 'iniciante' | 'profissional' | 'empresarial') => {
+    setLoading(true)
     try {
       const response = await fetch('/api/criar-pedido', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ plano }),
       })
 
       const data = await response.json()
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
+      
+      if (data.init_point) {
+        window.location.href = data.init_point
+      } else {
+        throw new Error('URL de pagamento não encontrada')
       }
     } catch (error) {
-      console.error('Erro ao processar pedido:', error)
+      console.error('Erro ao processar pagamento:', error)
+      alert('Erro ao processar pagamento. Por favor, tente novamente.')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gold-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-            <div className="flex items-center justify-center mb-8">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <FaGoogle className="w-8 h-8 text-blue-600" />
-              </div>
-              <h1 className="text-3xl font-bold ml-4">Comprar Avaliações</h1>
-            </div>
-
-            <div className="bg-blue-50 rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <FaStar className="text-yellow-400 mr-2" />
-                Benefícios Inclusos
-              </h2>
-              <ul className="space-y-3">
-                {[
-                  'Avaliações de contas reais e verificadas',
-                  'Entrega gradual para maior naturalidade',
-                  'Suporte prioritário',
-                  'Garantia de permanência',
-                ].map((beneficio, index) => (
-                  <li key={index} className="flex items-center text-gray-700">
-                    <FaCheck className="text-green-500 mr-2" />
-                    {beneficio}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nome">
-                  Nome Completo
-                </label>
-                <input
-                  type="text"
-                  id="nome"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                  required
-                  placeholder="Digite seu nome completo"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                  Email para Contato
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                  placeholder="seu@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="whatsapp">
-                  WhatsApp (opcional)
-                </label>
-                <input
-                  type="tel"
-                  id="whatsapp"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                  value={formData.whatsapp}
-                  onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="linkGoogle">
-                  Link do seu Negócio no Google
-                </label>
-                <input
-                  type="url"
-                  id="linkGoogle"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                  value={formData.linkGoogle}
-                  onChange={(e) => setFormData({...formData, linkGoogle: e.target.value})}
-                  required
-                  placeholder="https://www.google.com/maps/place/seu-negocio"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantidade">
-                  Quantidade de Avaliações
-                </label>
-                <select
-                  id="quantidade"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                  value={formData.quantidade}
-                  onChange={(e) => setFormData({...formData, quantidade: Number(e.target.value)})}
-                >
-                  <option value={5}>5 avaliações - R$ 249,90</option>
-                  <option value={10}>10 avaliações - R$ 329,90</option>
-                  <option value={15}>15 avaliações - R$ 449,90</option>
-                  <option value={20}>20 avaliações - R$ 519,90</option>
-                  <option value={50}>50 avaliações - R$ 999,90</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-8 rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+        <h1 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-gold-600 to-gold-400">
+          Escolha seu Plano
+        </h1>
+        
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-4">Iniciante</h3>
+              <div className="text-4xl font-bold mb-6">R$ 249,90</div>
+              <p className="text-gray-600 mb-6">5 Avaliações</p>
+              <button 
+                onClick={() => handlePurchase('iniciante')} 
+                className="w-full py-3 px-6 text-white bg-gold-500 rounded-lg hover:bg-gold-600 transition-colors"
+                disabled={loading}
               >
-                Prosseguir para Pagamento
+                {loading ? 'Processando...' : 'Comprar Agora'}
               </button>
+            </div>
+          </div>
 
-              <p className="text-center text-sm text-gray-500 mt-4">
-                Pagamento processado de forma segura via Mercado Pago
-              </p>
-            </form>
+          <div className="bg-gradient-to-b from-gold-500 to-gold-400 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform scale-105 relative">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white text-gold-600 text-sm font-bold px-4 py-1 rounded-full shadow-md">
+              Mais Popular
+            </div>
+            <div className="text-center text-white">
+              <h3 className="text-2xl font-bold mb-4">Profissional</h3>
+              <div className="text-5xl font-bold mb-6">R$ 449,90</div>
+              <p className="mb-6">15 Avaliações</p>
+              <button 
+                onClick={() => handlePurchase('profissional')} 
+                className="w-full py-4 px-6 text-gold-600 bg-white rounded-lg hover:bg-gray-100 transition-colors font-bold"
+                disabled={loading}
+              >
+                {loading ? 'Processando...' : 'Comprar Agora'}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-4">Empresarial</h3>
+              <div className="text-4xl font-bold mb-6">R$ 749,90</div>
+              <p className="text-gray-600 mb-6">30 Avaliações</p>
+              <button 
+                onClick={() => handlePurchase('empresarial')} 
+                className="w-full py-3 px-6 text-white bg-gold-500 rounded-lg hover:bg-gold-600 transition-colors"
+                disabled={loading}
+              >
+                {loading ? 'Processando...' : 'Comprar Agora'}
+              </button>
+            </div>
           </div>
         </div>
+
+        {loading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-2xl shadow-xl">
+              <div className="flex items-center space-x-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-600"></div>
+                <p className="text-lg">Processando seu pedido...</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -186,7 +108,7 @@ export default function ComprarPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-600"></div>
       </div>
     }>
       <ComprarForm />
