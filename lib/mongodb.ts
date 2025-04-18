@@ -19,12 +19,27 @@ async function dbConnect() {
   if (!cached.mongoose.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      maxPoolSize: 10
     }
 
-    cached.mongoose.promise = mongoose.connect(MONGODB_URI, opts)
+    cached.mongoose.promise = mongoose.connect(MONGODB_URI, opts).catch(error => {
+      console.error('Erro ao conectar ao MongoDB:', error);
+      throw error;
+    });
   }
-  cached.mongoose.conn = await cached.mongoose.promise
-  return cached.mongoose.conn
+
+  try {
+    cached.mongoose.conn = await cached.mongoose.promise
+    console.log('MongoDB conectado com sucesso');
+    return cached.mongoose.conn
+  } catch (e) {
+    cached.mongoose.promise = null
+    console.error('Erro na conexão com MongoDB:', e);
+    throw e
+  }
 }
 
 export default dbConnect 

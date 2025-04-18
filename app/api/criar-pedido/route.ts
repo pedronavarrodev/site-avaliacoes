@@ -14,19 +14,28 @@ const client = new MercadoPagoConfig({
 // Definição dos preços dos planos
 const PLANOS = {
   5: 25.00,   // Plano Iniciante
-  15: 10.00,  // Plano Profissional
+  15: 75.00,  // Plano Profissional
   20: 100.00  // Plano Empresarial
 };
 
+export const maxDuration = 60; // Aumenta o timeout para 60 segundos
+
 export async function POST(request: Request) {
+  console.log('Iniciando processamento do pedido...');
+  
   try {
+    console.log('Conectando ao MongoDB...');
     await dbConnect();
+    console.log('Conectado ao MongoDB com sucesso');
     
     const body = await request.json();
+    console.log('Dados recebidos:', body);
+    
     const { nome, email, linkGoogle, quantidade } = body;
     
     // Pega o preço baseado na quantidade ou usa o preço padrão
     const precoTotal = PLANOS[quantidade as keyof typeof PLANOS] || quantidade * 5;
+    console.log('Preço calculado:', precoTotal);
     
     const preference = new Preference(client);
     const preferenceData = {
@@ -47,9 +56,7 @@ export async function POST(request: Request) {
       },
       payment_methods: {
         installments: 1,
-        default_installments: 1,
-        excluded_payment_methods: [{ id: "ticket" }], // Exclui boleto
-        excluded_payment_types: [{ id: "ticket" }]    // Exclui boleto
+        default_installments: 1
       },
       back_urls: {
         success: `${process.env.NEXT_PUBLIC_BASE_URL}/sucesso`,
@@ -61,14 +68,15 @@ export async function POST(request: Request) {
       statement_descriptor: "AVALIACOES GOOGLE",
       external_reference: "PEDIDO-" + Date.now(),
       expires: false,
-      binary_mode: true // Força aprovação ou rejeição imediata
+      binary_mode: true
     };
 
-    console.log('Criando preferência:', preferenceData);
+    console.log('Criando preferência no Mercado Pago:', preferenceData);
     const result = await preference.create({ body: preferenceData });
     console.log('Resposta do Mercado Pago:', result);
 
     // Criar pedido no banco
+    console.log('Salvando pedido no banco...');
     const pedido = await Pedido.create({
       nome,
       email,
@@ -78,6 +86,7 @@ export async function POST(request: Request) {
       mercadoPagoId: result.id,
       status: 'pendente'
     });
+    console.log('Pedido salvo com sucesso:', pedido._id);
 
     if (!result.init_point) {
       throw new Error('URL de checkout não gerada');
@@ -88,9 +97,9 @@ export async function POST(request: Request) {
       checkoutUrl: result.init_point
     });
   } catch (error: any) {
-    console.error('Erro ao criar pedido:', error);
-    console.error('Detalhes do erro:', {
+    console.error('Erro detalhado:', {
       message: error.message,
+      name: error.name,
       cause: error.cause,
       stack: error.stack
     });
