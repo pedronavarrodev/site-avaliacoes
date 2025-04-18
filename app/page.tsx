@@ -114,7 +114,7 @@ export default function Home() {
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="text-center">
                 <h3 className="text-2xl font-bold mb-4">Iniciante</h3>
-                <div className="text-4xl font-bold mb-6">R$ 25,00</div>
+                <div className="text-4xl font-bold mb-6">R$ 249,90</div>
                 <p className="text-gray-600 mb-6">5 Avaliações</p>
                 <Link 
                   href="/comprar?plano=iniciante" 
@@ -124,14 +124,17 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gradient-to-b from-blue-600 to-indigo-600 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform scale-105">
+            <div className="bg-gradient-to-b from-blue-600 to-indigo-600 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform scale-105 relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-blue-900 text-sm font-bold px-4 py-1 rounded-full">
+                Mais Popular
+              </div>
               <div className="text-center text-white">
                 <h3 className="text-2xl font-bold mb-4">Profissional</h3>
-                <div className="text-4xl font-bold mb-6">R$ 75,00</div>
+                <div className="text-5xl font-bold mb-6">R$ 449,90</div>
                 <p className="mb-6">15 Avaliações</p>
                 <Link 
                   href="/comprar?plano=profissional" 
-                  className="inline-block w-full py-3 px-6 text-center text-blue-600 bg-white rounded-lg hover:bg-gray-100 transition-colors"
+                  className="inline-block w-full py-4 px-6 text-center text-blue-600 bg-white rounded-lg hover:bg-gray-100 transition-colors font-bold"
                 >
                   Escolher Plano
                 </Link>
@@ -140,8 +143,8 @@ export default function Home() {
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="text-center">
                 <h3 className="text-2xl font-bold mb-4">Empresarial</h3>
-                <div className="text-4xl font-bold mb-6">R$ 100,00</div>
-                <p className="text-gray-600 mb-6">20 Avaliações</p>
+                <div className="text-4xl font-bold mb-6">R$ 999,90</div>
+                <p className="text-gray-600 mb-6">50 Avaliações</p>
                 <Link 
                   href="/comprar?plano=empresarial" 
                   className="inline-block w-full py-3 px-6 text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
