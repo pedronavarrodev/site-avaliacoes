@@ -53,6 +53,7 @@ function StatusSelect({ status, pedidoId, onStatusChange }: StatusSelectProps) {
 export default function AdminPage() {
   const [isAutenticado, setIsAutenticado] = useState(false)
   const [senha, setSenha] = useState('')
+  const [lembrarLogin, setLembrarLogin] = useState(false)
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [filtro, setFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState('todos')
@@ -64,7 +65,41 @@ export default function AdminPage() {
     foto: '',
   })
   const [atualizando, setAtualizando] = useState(false)
+  const [depoimentoEmEdicao, setDepoimentoEmEdicao] = useState<Depoimento | null>(null);
+  const [depoimentoExpandido, setDepoimentoExpandido] = useState<string | null>(null);
   const router = useRouter()
+
+  useEffect(() => {
+    // Verifica se há credenciais salvas
+    const senhaArmazenada = localStorage.getItem('adminSenha')
+    const dataExpiracao = localStorage.getItem('adminExpiracao')
+    
+    if (senhaArmazenada && dataExpiracao) {
+      // Verifica se ainda não expirou
+      if (new Date().getTime() < Number(dataExpiracao)) {
+        setSenha(senhaArmazenada)
+        handleLoginAutomatico(senhaArmazenada)
+      } else {
+        // Remove credenciais expiradas
+        localStorage.removeItem('adminSenha')
+        localStorage.removeItem('adminExpiracao')
+      }
+    }
+  }, [])
+
+  const handleLoginAutomatico = async (senhaArmazenada: string) => {
+    const res = await fetch('/api/admin/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha: senhaArmazenada }),
+    })
+
+    if (res.ok) {
+      setIsAutenticado(true)
+      carregarPedidos()
+      carregarDepoimentos()
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,6 +113,13 @@ export default function AdminPage() {
       setIsAutenticado(true)
       carregarPedidos()
       carregarDepoimentos()
+
+      if (lembrarLogin) {
+        // Salva a senha e a data de expiração (30 dias)
+        const dataExpiracao = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
+        localStorage.setItem('adminSenha', senha)
+        localStorage.setItem('adminExpiracao', dataExpiracao.toString())
+      }
     } else {
       alert('Senha incorreta')
     }
@@ -226,6 +268,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleEditarDepoimento = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!depoimentoEmEdicao) return;
+
+    try {
+      const res = await fetch(`/api/admin/depoimentos/${depoimentoEmEdicao._id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${senha}`
+        },
+        body: JSON.stringify(depoimentoEmEdicao),
+      });
+
+      if (res.ok) {
+        setDepoimentos(depoimentos.map(d => 
+          d._id === depoimentoEmEdicao._id ? depoimentoEmEdicao : d
+        ));
+        setDepoimentoEmEdicao(null);
+      } else {
+        alert('Erro ao atualizar depoimento');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar depoimento:', error);
+      alert('Erro ao atualizar depoimento');
+    }
+  };
+
   if (!isAutenticado) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -256,6 +326,20 @@ export default function AdminPage() {
                   onChange={(e) => setSenha(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="lembrar-login"
+                name="lembrar-login"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                checked={lembrarLogin}
+                onChange={(e) => setLembrarLogin(e.target.checked)}
+              />
+              <label htmlFor="lembrar-login" className="ml-2 block text-sm text-gray-900">
+                Lembrar login por 30 dias
+              </label>
             </div>
 
             <button
@@ -411,42 +495,136 @@ export default function AdminPage() {
             </form>
 
             {/* Lista de Depoimentos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4">
               {depoimentos.map((depoimento) => (
                 <div
                   key={depoimento._id}
-                  className="bg-gray-50 p-6 rounded-lg relative"
+                  className="bg-white border rounded-lg shadow-sm p-4"
                 >
-                  <button
-                    onClick={() => excluirDepoimento(depoimento._id)}
-                    className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
-                  <div className="flex items-center mb-4">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
-                      {depoimento.foto ? (
-                        <Image
-                          src={depoimento.foto}
-                          alt={depoimento.nome}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <FaUserCircle className="w-full h-full text-blue-300" />
+                  {depoimentoEmEdicao?._id === depoimento._id ? (
+                    // Formulário de Edição
+                    <form onSubmit={handleEditarDepoimento} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Nome</label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            value={depoimentoEmEdicao.nome}
+                            onChange={(e) => setDepoimentoEmEdicao({
+                              ...depoimentoEmEdicao,
+                              nome: e.target.value
+                            })}
+                          />
                         </div>
-                      )}
-                    </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Empresa</label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            value={depoimentoEmEdicao.empresa}
+                            onChange={(e) => setDepoimentoEmEdicao({
+                              ...depoimentoEmEdicao,
+                              empresa: e.target.value
+                            })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Foto URL</label>
+                        <input
+                          type="url"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          value={depoimentoEmEdicao.foto}
+                          onChange={(e) => setDepoimentoEmEdicao({
+                            ...depoimentoEmEdicao,
+                            foto: e.target.value
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Depoimento</label>
+                        <textarea
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          rows={4}
+                          value={depoimentoEmEdicao.texto}
+                          onChange={(e) => setDepoimentoEmEdicao({
+                            ...depoimentoEmEdicao,
+                            texto: e.target.value
+                          })}
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setDepoimentoEmEdicao(null)}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        >
+                          Salvar
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    // Visualização Compacta
                     <div>
-                      <p className="font-semibold">{depoimento.nome}</p>
-                      <p className="text-sm text-gray-500">{depoimento.empresa}</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3 bg-blue-100">
+                            {depoimento.foto ? (
+                              <Image
+                                src={depoimento.foto}
+                                alt={depoimento.nome}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FaUserCircle className="w-full h-full text-blue-300" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium">{depoimento.nome}</h3>
+                            <p className="text-xs text-gray-500">{depoimento.empresa}</p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setDepoimentoExpandido(
+                              depoimentoExpandido === depoimento._id ? null : depoimento._id
+                            )}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {depoimentoExpandido === depoimento._id ? 'Recolher' : 'Expandir'}
+                          </button>
+                          <button
+                            onClick={() => setDepoimentoEmEdicao(depoimento)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => excluirDepoimento(depoimento._id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </div>
+                      <p className={`text-sm text-gray-600 ${depoimentoExpandido !== depoimento._id && 'line-clamp-2'}`}>
+                        {depoimento.texto}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {new Date(depoimento.dataCriacao).toLocaleDateString()}
+                      </p>
                     </div>
-                  </div>
-                  <p className="text-gray-600">{depoimento.texto}</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    {new Date(depoimento.dataCriacao).toLocaleDateString()}
-                  </p>
+                  )}
                 </div>
               ))}
             </div>
