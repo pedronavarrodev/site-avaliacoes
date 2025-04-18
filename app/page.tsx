@@ -162,7 +162,7 @@ export default function Home() {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
-          ) : (
+          ) : depoimentos.length > 0 ? (
             <Swiper
               modules={[Autoplay, Pagination]}
               spaceBetween={30}
@@ -184,122 +184,46 @@ export default function Home() {
               }}
               className="pb-12"
             >
-              {depoimentos.length > 0 ? (
-                depoimentos.map((depoimento) => (
-                  <SwiperSlide key={depoimento._id}>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg h-full flex flex-col">
-                      <div className="flex items-center mb-6">
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
-                          {depoimento.foto ? (
-                            <Image
-                              src={depoimento.foto}
-                              alt={depoimento.nome}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <FaUserCircle className="w-full h-full text-blue-300" />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">{depoimento.nome}</p>
-                          <p className="text-sm text-gray-500">{depoimento.empresa}</p>
-                        </div>
-                      </div>
-                      <div className="flex-grow">
-                        <FaQuoteLeft className="w-8 h-8 text-blue-200 mb-4" />
-                        <p className="text-gray-600 italic">"{depoimento.texto}"</p>
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 w-4 h-4" />
-                        ))}
-                      </div>
-                    </div>
-                  </SwiperSlide>
-                ))
-              ) : (
-                // Depoimentos padrão
-                <>
-                  <SwiperSlide>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg h-full flex flex-col">
-                      <div className="flex items-center mb-6">
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
+              {depoimentos.map((depoimento) => (
+                <SwiperSlide key={depoimento._id}>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg h-full flex flex-col">
+                    <div className="flex items-center mb-6">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
+                        {depoimento.foto ? (
+                          <Image
+                            src={depoimento.foto}
+                            alt={depoimento.nome}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <FaUserCircle className="w-full h-full text-blue-300" />
                           </div>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">Maria Silva</p>
-                          <p className="text-sm text-gray-500">Restaurante Sabor & Arte</p>
-                        </div>
+                        )}
                       </div>
-                      <div className="flex-grow">
-                        <FaQuoteLeft className="w-8 h-8 text-blue-200 mb-4" />
-                        <p className="text-gray-600 italic">"Excelente serviço! As avaliações começaram a aparecer rapidamente e de forma natural. Meu negócio ganhou muito mais visibilidade."</p>
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 w-4 h-4" />
-                        ))}
+                      <div>
+                        <p className="font-semibold text-gray-800">{depoimento.nome}</p>
+                        <p className="text-sm text-gray-500">{depoimento.empresa}</p>
                       </div>
                     </div>
-                  </SwiperSlide>
-
-                  <SwiperSlide>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg h-full flex flex-col">
-                      <div className="flex items-center mb-6">
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
-                          <div className="w-full h-full flex items-center justify-center">
-                            <FaUserCircle className="w-full h-full text-blue-300" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">João Santos</p>
-                          <p className="text-sm text-gray-500">Clínica Odontológica Sorriso</p>
-                        </div>
-                      </div>
-                      <div className="flex-grow">
-                        <FaQuoteLeft className="w-8 h-8 text-blue-200 mb-4" />
-                        <p className="text-gray-600 italic">"Superou minhas expectativas! O processo foi muito profissional e os resultados são impressionantes. Recomendo!"</p>
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 w-4 h-4" />
-                        ))}
-                      </div>
+                    <div className="flex-grow">
+                      <FaQuoteLeft className="w-8 h-8 text-blue-200 mb-4" />
+                      <p className="text-gray-600 italic">"{depoimento.texto}"</p>
                     </div>
-                  </SwiperSlide>
-
-                  <SwiperSlide>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg h-full flex flex-col">
-                      <div className="flex items-center mb-6">
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 bg-blue-100">
-                          <div className="w-full h-full flex items-center justify-center">
-                            <FaUserCircle className="w-full h-full text-blue-300" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">Ana Oliveira</p>
-                          <p className="text-sm text-gray-500">Academia Vida Ativa</p>
-                        </div>
-                      </div>
-                      <div className="flex-grow">
-                        <FaQuoteLeft className="w-8 h-8 text-blue-200 mb-4" />
-                        <p className="text-gray-600 italic">"Minha empresa teve um aumento significativo nas visitas após as avaliações. O suporte foi incrível durante todo o processo."</p>
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 w-4 h-4" />
-                        ))}
-                      </div>
+                    <div className="flex justify-center mt-4">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-yellow-400 w-4 h-4" />
+                      ))}
                     </div>
-                  </SwiperSlide>
-                </>
-              )}
+                  </div>
+                </SwiperSlide>
+              ))}
             </Swiper>
+          ) : (
+            <div className="text-center text-gray-500">
+              Ainda não há depoimentos disponíveis.
+            </div>
           )}
         </div>
       </div>
