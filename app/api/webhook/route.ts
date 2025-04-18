@@ -7,7 +7,7 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN as string 
 });
 
-export const maxDuration = 300; // 5 minutos de timeout
+export const maxDuration = 60; // Máximo permitido no plano hobby da Vercel
 
 export async function POST(request: Request) {
   console.log('Webhook recebido');
