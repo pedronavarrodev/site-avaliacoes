@@ -29,6 +29,11 @@ const PedidoSchema = new mongoose.Schema({
   mercadoPagoId: {
     type: String,
   },
+  pagamento: {
+    status: String,
+    detalhes: mongoose.Schema.Types.Mixed,
+    atualizadoEm: Date
+  },
   dataCriacao: {
     type: Date,
     default: Date.now,

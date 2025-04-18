@@ -26,6 +26,29 @@ interface Depoimento {
   dataCriacao: string
 }
 
+interface StatusSelectProps {
+  status: string;
+  pedidoId: string;
+  onStatusChange: (id: string, newStatus: string) => void;
+}
+
+function StatusSelect({ status, pedidoId, onStatusChange }: StatusSelectProps) {
+  return (
+    <select
+      value={status}
+      onChange={(e) => onStatusChange(pedidoId, e.target.value)}
+      className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full 
+        ${status === 'pago' ? 'bg-green-100 text-green-800' : 
+          status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 
+          'bg-red-100 text-red-800'}`}
+    >
+      <option value="pendente">pendente</option>
+      <option value="pago">pago</option>
+      <option value="cancelado">cancelado</option>
+    </select>
+  );
+}
+
 export default function AdminPage() {
   const [isAutenticado, setIsAutenticado] = useState(false)
   const [senha, setSenha] = useState('')
@@ -39,6 +62,7 @@ export default function AdminPage() {
     texto: '',
     foto: '',
   })
+  const [atualizando, setAtualizando] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -143,6 +167,39 @@ export default function AdminPage() {
       alert('Erro ao excluir depoimento')
     }
   }
+
+  const handleStatusChange = async (pedidoId: string, newStatus: string) => {
+    if (!confirm(`Deseja realmente alterar o status para ${newStatus}?`)) return;
+    
+    setAtualizando(true);
+    try {
+      const res = await fetch('/api/admin/pedidos', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${senha}` // Usa a senha como token
+        },
+        body: JSON.stringify({ 
+          pedidoId, 
+          status: newStatus 
+        })
+      });
+
+      if (res.ok) {
+        // Atualiza o pedido localmente
+        setPedidos(pedidos.map(p => 
+          p._id === pedidoId ? { ...p, status: newStatus } : p
+        ));
+      } else {
+        alert('Erro ao atualizar status');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      alert('Erro ao atualizar status');
+    } finally {
+      setAtualizando(false);
+    }
+  };
 
   if (!isAutenticado) {
     return (
@@ -420,12 +477,11 @@ export default function AdminPage() {
                     {pedido.quantidade}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${pedido.status === 'pago' ? 'bg-green-100 text-green-800' : 
-                        pedido.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-red-100 text-red-800'}`}>
-                      {pedido.status}
-                    </span>
+                    <StatusSelect 
+                      status={pedido.status}
+                      pedidoId={pedido._id}
+                      onStatusChange={handleStatusChange}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     R$ {pedido.precoTotal.toFixed(2)}
