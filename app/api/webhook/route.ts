@@ -34,14 +34,18 @@ export async function POST(request: Request) {
         status = 'cancelado';
       }
 
-      // Busca usando o preference_id
+      // Busca usando o external_reference do pagamento
+      const externalReference = paymentData.external_reference;
+      console.log('External reference:', externalReference);
+
       const pedido = await Pedido.findOneAndUpdate(
-        { mercadoPagoId: paymentData.preference_id },
+        { mercadoPagoId: externalReference },
         { 
           status: status,
           $set: { 
             "pagamento.status": paymentData.status,
-            "pagamento.detalhes": paymentData
+            "pagamento.detalhes": paymentData,
+            "pagamento.atualizadoEm": new Date()
           }
         },
         { new: true }
@@ -51,7 +55,7 @@ export async function POST(request: Request) {
       console.log('Status atualizado para:', status);
       
       if (!pedido) {
-        console.error('Pedido não encontrado para preference_id:', paymentData.preference_id);
+        console.error('Pedido não encontrado para external_reference:', externalReference);
         return NextResponse.json({ error: 'Pedido não encontrado' }, { status: 404 });
       }
       
